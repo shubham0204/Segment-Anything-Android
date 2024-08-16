@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2025 Shubham Panchal
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.shubham0204.sam_android
 
 import AppProgressDialog
@@ -5,7 +21,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.graphics.PointF
-import androidx.exifinterface.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -65,6 +80,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
+import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.viewmodel.compose.viewModel
 import hideProgressDialog
 import io.shubham0204.sam_android.sam.SAMDecoder
@@ -84,9 +100,7 @@ import java.nio.file.Paths
 import kotlin.time.DurationUnit
 import kotlin.time.measureTimedValue
 
-
 class MainActivity : ComponentActivity() {
-
     private val encoder = SAMEncoder()
     private val decoder = SAMDecoder()
     private val encoderFileName = "encoder_base_plus.onnx"
@@ -100,11 +114,11 @@ class MainActivity : ComponentActivity() {
             SAMAndroidTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Column(
-                        modifier = Modifier
-                            .verticalScroll(rememberScrollState())
-                            .padding(innerPadding)
+                        modifier =
+                            Modifier
+                                .verticalScroll(rememberScrollState())
+                                .padding(innerPadding),
                     ) {
-
                         val viewModel = viewModel<MainActivityViewModel>()
 
                         var image by remember { mutableStateOf<Bitmap?>(null) }
@@ -122,8 +136,7 @@ class MainActivity : ComponentActivity() {
                                     copyModelToStorage(decoderFileName)
                                     encoder.init(Paths.get(filesDir.absolutePath, encoderFileName).toString())
                                     decoder.init(Paths.get(filesDir.absolutePath, decoderFileName).toString())
-                                }
-                                else {
+                                } else {
                                     encoder.init("/data/local/tmp/sam/encoder_base_plus.onnx")
                                     decoder.init("/data/local/tmp/sam/decoder_base_plus.onnx")
                                 }
@@ -137,79 +150,92 @@ class MainActivity : ComponentActivity() {
                                     dialogPositiveButtonText = "Close",
                                     dialogNegativeButtonText = null,
                                     onPositiveButtonClick = { finish() },
-                                    onNegativeButtonClick = null
+                                    onNegativeButtonClick = null,
                                 )
                             }
-
                         }
 
-                        val pickMediaLauncher = rememberLauncherForActivityResult(
-                            contract = ActivityResultContracts.PickVisualMedia()
-                        ) {
-                            if (it != null) {
-                                val bitmap = getFixedBitmap(it)
-                                image = bitmap
-                                viewModel.reset()
+                        val pickMediaLauncher =
+                            rememberLauncherForActivityResult(
+                                contract = ActivityResultContracts.PickVisualMedia(),
+                            ) {
+                                if (it != null) {
+                                    val bitmap = getFixedBitmap(it)
+                                    image = bitmap
+                                    viewModel.reset()
+                                }
                             }
-                        }
 
                         Row(
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp)
-                                .fillMaxWidth()
+                            modifier =
+                                Modifier
+                                    .padding(horizontal = 8.dp)
+                                    .fillMaxWidth(),
                         ) {
-
-                            Button(modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(4.dp)
-                                .weight(1f),
+                            Button(
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(4.dp)
+                                        .weight(1f),
                                 onClick = {
                                     viewModel.showBottomSheet.value = true
-                                }) {
+                                },
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.Tag,
-                                    contentDescription = "Choose Label For Points"
+                                    contentDescription = "Choose Label For Points",
                                 )
                                 Text(text = "Choose Label For Points")
                             }
                         }
 
                         Row(
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp)
-                                .fillMaxWidth()
+                            modifier =
+                                Modifier
+                                    .padding(horizontal = 8.dp)
+                                    .fillMaxWidth(),
                         ) {
-                            Button(modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(4.dp)
-                                .weight(1f),
+                            Button(
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(4.dp)
+                                        .weight(1f),
                                 enabled = isReady && (image != null),
                                 onClick = {
                                     image?.let { bitmap ->
                                         processInputPoints(
-                                            bitmap, points, viewPortDims, viewModel
+                                            bitmap,
+                                            points,
+                                            viewPortDims,
+                                            viewModel,
                                         )
                                     }
-                                }) {
+                                },
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.Layers,
-                                    contentDescription = "Segment"
+                                    contentDescription = "Segment",
                                 )
                                 Text(text = "Segment!")
                             }
-                            Button(modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(4.dp)
-                                .weight(1f),
+                            Button(
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(4.dp)
+                                        .weight(1f),
                                 enabled = isReady,
                                 onClick = {
                                     pickMediaLauncher.launch(
-                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
                                     )
-                                }) {
+                                },
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.Image,
-                                    contentDescription = "Select Image"
+                                    contentDescription = "Select Image",
                                 )
                                 Text(text = "Select Image")
                             }
@@ -222,65 +248,74 @@ class MainActivity : ComponentActivity() {
                                 fontSize = 12.sp,
                                 color = Color.DarkGray,
                                 textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(4.dp)
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(4.dp),
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Box {
-                                Image(bitmap = image!!.asImageBitmap(),
+                                Image(
+                                    bitmap = image!!.asImageBitmap(),
                                     contentScale = ContentScale.Fit,
                                     contentDescription = "Selected Image",
-                                    modifier = Modifier
-                                        .pointerInput(Unit) {
-                                            detectTapGestures(onLongPress = {
-                                                val newPoints =
-                                                    points.filter { it.label != viewModel.selectedLabelIndex.intValue }
-                                                points.clear()
-                                                points.addAll(newPoints)
-                                                Toast
-                                                    .makeText(
-                                                        this@MainActivity,
-                                                        "All guide-points removed",
-                                                        Toast.LENGTH_LONG
+                                    modifier =
+                                        Modifier
+                                            .pointerInput(Unit) {
+                                                detectTapGestures(onLongPress = {
+                                                    val newPoints =
+                                                        points.filter { it.label != viewModel.selectedLabelIndex.intValue }
+                                                    points.clear()
+                                                    points.addAll(newPoints)
+                                                    Toast
+                                                        .makeText(
+                                                            this@MainActivity,
+                                                            "All guide-points removed",
+                                                            Toast.LENGTH_LONG,
+                                                        ).show()
+                                                }, onTap = { offset ->
+                                                    points.add(
+                                                        LabelPoint(
+                                                            viewModel.selectedLabelIndex.intValue,
+                                                            PointF(offset.x, offset.y),
+                                                        ),
                                                     )
-                                                    .show()
-                                            }, onTap = { offset ->
-                                                points.add(
-                                                    LabelPoint(
-                                                        viewModel.selectedLabelIndex.intValue,
-                                                        PointF(offset.x, offset.y)
-                                                    )
-                                                )
-                                            })
-                                        }
-                                        .onGloballyPositioned {
-                                            viewPortDims = it.size.toSize()
-                                        })
-                                Spacer(modifier = Modifier
-                                    .fillMaxSize()
-                                    .drawWithCache {
-                                        onDrawBehind {
-                                            points
-                                                .filter { labelPoint -> labelPoint.label == viewModel.selectedLabelIndex.intValue }
-                                                .forEach { labelPoint ->
-                                                    drawCircle(
-                                                        color = Color.Black,
-                                                        radius = 15f,
-                                                        center = Offset(
-                                                            labelPoint.point.x, labelPoint.point.y
-                                                        )
-                                                    )
-                                                    drawCircle(
-                                                        color = Color.Yellow,
-                                                        radius = 12f,
-                                                        center = Offset(
-                                                            labelPoint.point.x, labelPoint.point.y
-                                                        )
-                                                    )
+                                                })
+                                            }.onGloballyPositioned {
+                                                viewPortDims = it.size.toSize()
+                                            },
+                                )
+                                Spacer(
+                                    modifier =
+                                        Modifier
+                                            .fillMaxSize()
+                                            .drawWithCache {
+                                                onDrawBehind {
+                                                    points
+                                                        .filter { labelPoint -> labelPoint.label == viewModel.selectedLabelIndex.intValue }
+                                                        .forEach { labelPoint ->
+                                                            drawCircle(
+                                                                color = Color.Black,
+                                                                radius = 15f,
+                                                                center =
+                                                                    Offset(
+                                                                        labelPoint.point.x,
+                                                                        labelPoint.point.y,
+                                                                    ),
+                                                            )
+                                                            drawCircle(
+                                                                color = Color.Yellow,
+                                                                radius = 12f,
+                                                                center =
+                                                                    Offset(
+                                                                        labelPoint.point.x,
+                                                                        labelPoint.point.y,
+                                                                    ),
+                                                            )
+                                                        }
                                                 }
-                                        }
-                                    })
+                                            },
+                                )
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
@@ -288,23 +323,24 @@ class MainActivity : ComponentActivity() {
                                 fontSize = 12.sp,
                                 color = Color.DarkGray,
                                 textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
                             )
                         }
                         if (outputImages.isNotEmpty()) {
                             Text(
                                 modifier = Modifier.padding(4.dp),
                                 fontSize = 18.sp,
-                                text = "Segmented Images (${viewModel.inferenceTime.intValue} s)"
+                                text = "Segmented Images (${viewModel.inferenceTime.intValue} s)",
                             )
                         }
                         outputImages.forEach {
                             Image(
                                 modifier = Modifier.background(Color.Black.copy(green = 1.0f)),
                                 bitmap = it.asImageBitmap(),
-                                contentDescription = "Segmented image"
+                                contentDescription = "Segmented image",
                             )
                         }
 
@@ -315,7 +351,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -332,18 +367,19 @@ class MainActivity : ComponentActivity() {
             ModalBottomSheet(
                 containerColor = Color.White,
                 onDismissRequest = { showBottomSheet = false },
-                sheetState = sheetState
+                sheetState = sheetState,
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     Row {
                         Text(
                             text = "Manage Labels",
                             fontSize = 18.sp,
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .weight(1f)
+                            modifier =
+                                Modifier
+                                    .padding(8.dp)
+                                    .weight(1f),
                         )
                         IconButton(onClick = {
                             scope.launch { sheetState.hide() }.invokeOnCompletion {
@@ -354,47 +390,53 @@ class MainActivity : ComponentActivity() {
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Close Panel"
+                                contentDescription = "Close Panel",
                             )
                         }
                     }
                     LazyColumn {
                         itemsIndexed(labels) { index, item ->
-                            Text(text = item, modifier = Modifier
-                                .clickable {
-                                    selectedLabelIndex = index
-                                }
-                                .background(if (selectedLabelIndex == index) Color.Cyan else Color.White)
-                                .padding(8.dp)
-                                .fillMaxWidth())
+                            Text(
+                                text = item,
+                                modifier =
+                                    Modifier
+                                        .clickable {
+                                            selectedLabelIndex = index
+                                        }.background(if (selectedLabelIndex == index) Color.Cyan else Color.White)
+                                        .padding(8.dp)
+                                        .fillMaxWidth(),
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Row {
                         Button(
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .fillMaxWidth()
-                                .weight(1f),
+                            modifier =
+                                Modifier
+                                    .padding(4.dp)
+                                    .fillMaxWidth()
+                                    .weight(1f),
                             onClick = {
                                 lastAddedLabel += 1
                                 labels.add("Label $lastAddedLabel")
-                            }) {
+                            },
+                        ) {
                             Text(text = "Add Label")
                         }
                         Button(
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .fillMaxWidth()
-                                .weight(1f),
+                            modifier =
+                                Modifier
+                                    .padding(4.dp)
+                                    .fillMaxWidth()
+                                    .weight(1f),
                             onClick = {
                                 labels.removeAt(selectedLabelIndex)
-                            }) {
+                            },
+                        ) {
                             Text(text = "Remove Label")
                         }
                     }
                 }
-
             }
         }
     }
@@ -403,7 +445,7 @@ class MainActivity : ComponentActivity() {
         bitmap: Bitmap,
         points: List<LabelPoint>,
         viewPortDims: Size?,
-        viewModel: MainActivityViewModel
+        viewModel: MainActivityViewModel,
     ) {
         CoroutineScope(Dispatchers.Default).launch {
             try {
@@ -435,16 +477,17 @@ class MainActivity : ComponentActivity() {
                 pointsBuffer.rewind()
                 labelsBuffer.rewind()
 
-                val (imagesWithMask, time) = measureTimedValue {
-                    decoder.execute(
-                        encoder.execute(bitmap),
-                        pointsBuffer,
-                        labelsBuffer,
-                        labelsCount.toLong(),
-                        maxPoints.toLong(),
-                        bitmap
-                    )
-                }
+                val (imagesWithMask, time) =
+                    measureTimedValue {
+                        decoder.execute(
+                            encoder.execute(bitmap),
+                            pointsBuffer,
+                            labelsBuffer,
+                            labelsCount.toLong(),
+                            maxPoints.toLong(),
+                            bitmap,
+                        )
+                    }
                 withContext(Dispatchers.Main) {
                     viewModel.inferenceTime.intValue = time.toInt(DurationUnit.SECONDS)
                     hideProgressDialog()
@@ -459,15 +502,13 @@ class MainActivity : ComponentActivity() {
                     dialogPositiveButtonText = "Close",
                     dialogNegativeButtonText = null,
                     onPositiveButtonClick = { finish() },
-                    onNegativeButtonClick = null
+                    onNegativeButtonClick = null,
                 )
             }
         }
     }
 
-    private fun isModelInAssets(modelFileName: String): Boolean {
-        return (assets.list("") ?: emptyArray()).contains(modelFileName)
-    }
+    private fun isModelInAssets(modelFileName: String): Boolean = (assets.list("") ?: emptyArray()).contains(modelFileName)
 
     private fun copyModelToStorage(modelFileName: String) {
         val modelFile = File(filesDir, modelFileName)
@@ -484,25 +525,32 @@ class MainActivity : ComponentActivity() {
     private fun getFixedBitmap(imageFileUri: Uri): Bitmap {
         var imageBitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(imageFileUri))
         val exifInterface = ExifInterface(contentResolver.openInputStream(imageFileUri)!!)
-        imageBitmap = when (exifInterface.getAttributeInt(
-            ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED
-        )) {
-            ExifInterface.ORIENTATION_ROTATE_90 -> rotateBitmap(imageBitmap, 90f)
-            ExifInterface.ORIENTATION_ROTATE_180 -> rotateBitmap(imageBitmap, 180f)
-            ExifInterface.ORIENTATION_ROTATE_270 -> rotateBitmap(imageBitmap, 270f)
-            else -> imageBitmap
-        }
+        imageBitmap =
+            when (
+                exifInterface.getAttributeInt(
+                    ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_UNDEFINED,
+                )
+            ) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> rotateBitmap(imageBitmap, 90f)
+                ExifInterface.ORIENTATION_ROTATE_180 -> rotateBitmap(imageBitmap, 180f)
+                ExifInterface.ORIENTATION_ROTATE_270 -> rotateBitmap(imageBitmap, 270f)
+                else -> imageBitmap
+            }
         return imageBitmap
     }
 
-    private fun rotateBitmap(source: Bitmap, degrees: Float): Bitmap {
+    private fun rotateBitmap(
+        source: Bitmap,
+        degrees: Float,
+    ): Bitmap {
         val matrix = Matrix()
         matrix.postRotate(degrees)
         return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, false)
     }
 
     data class LabelPoint(
-        val label: Int, val point: PointF
+        val label: Int,
+        val point: PointF,
     )
-
 }
