@@ -7,6 +7,8 @@
 - No support for text-prompt as an input to the model
 - The inference time is *quite high* even with `float16` quantization enabled
 
+Download the [APK](https://github.com/shubham0204/Segment-Anything-Android/releases/tag/release_apk) or [setup the project locally](#setup)
+
 ## About Segment-Anything
 
 ![sam_architecture](https://github.com/user-attachments/assets/6a982571-7366-4849-b716-635786207bae)
@@ -44,9 +46,31 @@ git clone --depth=1 https://github.com/shubham0204/Segment-Anything-Android
 
 3. After a successful project build, [connect an Android device](https://developer.android.com/studio/run/device) to your system. Once connected, the name of the device must be visible in top menu-bar in Android Studio.
 
-4. Download any `*_encoder.onnx` and corresponding `*_decoder.onnx` models from the [HuggingFace repository](https://huggingface.co/shubham0204/sam2-onnx-models) and place them in the root directory of the project.
+4. Download any `*_encoder.onnx` and corresponding `*_decoder.onnx` models from the [HuggingFace repository](https://huggingface.co/shubham0204/sam2-onnx-models) and place them in the root directory of the project. The models can be stored in one of the two possible methods
 
-5. Using the `adb` CLI tool, insert the ONNX models in the device's storage,
+#### Store the ONNX models in the `assets` folder
+
+By placing the `*_encoder.onnx` and `*_decoder.onnx` in the `app/src/main/assets` folder, the models are packaged with the APK, which increases the overall size of the APK but avoids any additional setup to bring the models to the device. Make sure you change the names of the encoder and decoder models in `MainActivity.kt`,
+
+```kotlin
+
+class MainActivity : ComponentActivity() {
+
+    private val encoder = SAMEncoder()
+    private val decoder = SAMDecoder()
+    
+    // The app will look for models with these file-names 
+    // in the assets folder
+    private val encoderFileName = "encoder_base_plus.onnx"
+    private val decoderFileName = "decoder_base_plus.onnx"
+
+    // ...
+}
+```
+
+#### Store the ONNX models in the device's temporary storage
+
+Using the `adb` CLI tool, insert the ONNX models in the device's storage,
 
 ```text
 adb push sam2_hiera_small_encoder.onnx /data/local/tmp/sam/encoder.onnx
@@ -55,7 +79,7 @@ adb push sam2_hiera_small_decoder.onnx /data/local/tmp/sam/decoder.onnx
 
 Replace `sam2_hiera_small_decoder.onnx` and `sam2_hiera_small_encoder.onnx` with the name of the model downloaded from the HF repository in step (4).
 
-6. Update the model paths and set other options in `MainActivity.kt`,
+Update the model paths and set other options in `MainActivity.kt`,
 
 ```kotlin
 class MainActivity : ComponentActivity() {
@@ -81,7 +105,7 @@ class MainActivity : ComponentActivity() {
                             // used in step (5)
                             encoder.init(
                                 "/data/local/tmp/sam/encoder_fp16.onnx",
-                                useXNNPack = true,
+                                useXNNPack = true, // XNNPack delegate for onnxruntime
                                 useFP16 = true
                             )
                             decoder.init(

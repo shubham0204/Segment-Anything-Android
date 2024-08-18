@@ -9,5 +9,6 @@
 .externalNativeBuild
 .cxx
 local.properties
-app/src/main/assets
 app/release
+app/src/main/assets/encoder_base_plus.onnx
+app/src/main/assets/decoder_base_plus.onnx

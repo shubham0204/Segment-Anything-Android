@@ -8,6 +8,7 @@ import android.graphics.PointF
 import androidx.exifinterface.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -77,7 +78,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import setProgressDialogText
 import showProgressDialog
+import java.io.File
 import java.nio.FloatBuffer
+import java.nio.file.Paths
 import kotlin.time.DurationUnit
 import kotlin.time.measureTimedValue
 
@@ -86,6 +89,8 @@ class MainActivity : ComponentActivity() {
 
     private val encoder = SAMEncoder()
     private val decoder = SAMDecoder()
+    private val encoderFileName = "encoder_base_plus.onnx"
+    private val decoderFileName = "decoder_base_plus.onnx"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,12 +117,16 @@ class MainActivity : ComponentActivity() {
                             try {
                                 showProgressDialog()
                                 setProgressDialogText("Loading models...")
-                                encoder.init(
-                                    "/data/local/tmp/sam/encoder_base_plu.onnx"
-                                )
-                                decoder.init(
-                                    "/data/local/tmp/sam/decoder_base_plus_float32.onnx"
-                                )
+                                if (isModelInAssets(encoderFileName) && isModelInAssets(decoderFileName)) {
+                                    copyModelToStorage(encoderFileName)
+                                    copyModelToStorage(decoderFileName)
+                                    encoder.init(Paths.get(filesDir.absolutePath, encoderFileName).toString())
+                                    decoder.init(Paths.get(filesDir.absolutePath, decoderFileName).toString())
+                                }
+                                else {
+                                    encoder.init("/data/local/tmp/sam/encoder_base_plus.onnx")
+                                    decoder.init("/data/local/tmp/sam/decoder_base_plus.onnx")
+                                }
                                 isReady = true
                                 hideProgressDialog()
                             } catch (e: Exception) {
@@ -453,6 +462,22 @@ class MainActivity : ComponentActivity() {
                     onNegativeButtonClick = null
                 )
             }
+        }
+    }
+
+    private fun isModelInAssets(modelFileName: String): Boolean {
+        return (assets.list("") ?: emptyArray()).contains(modelFileName)
+    }
+
+    private fun copyModelToStorage(modelFileName: String) {
+        val modelFile = File(filesDir, modelFileName)
+        if (!modelFile.exists()) {
+            assets.open(modelFileName).use { inputStream ->
+                openFileOutput(modelFileName, MODE_PRIVATE).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+            Log.i(MainActivity::class.simpleName, "$modelFileName copied from assets to app storage")
         }
     }
 
